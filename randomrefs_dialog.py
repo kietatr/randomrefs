@@ -141,12 +141,16 @@ class RandomRefsDialog():
         for row in range(numRows):
             for col in range(numCols):
                 i = row * numCols + col
+
+                # Empty space in the center (ref images arranged to the left and right sides)
                 if numCols == 2:
-                    x = padding 
-                    y = padding 
+                    x = (3 * col + 1) * padding + (3 * col) * colSize
+                    y = (row + 1) * padding + (row) * rowSize 
+                # Equal grid with ref images on the left of each grid cell
                 else:
-                    x = (col*2 + 1) * padding + (2 * col) * colSize
-                    y = (row + 1) * padding + row * rowSize
+                    x = (2 * col + 1) * padding + (2 * col) * colSize
+                    y = (row + 1) * padding + (row) * rowSize
+
                 image_utils.importAsPaintLayer(randomRefImagePaths[i], x, y, colSize, rowSize)
 
     def setBackgroundColor(self):
