@@ -10,7 +10,8 @@ def importAndArrangeImages(imagePaths: list[str], numRows: int, numCols: int, ro
     for row in range(numRows):
         for col in range(numCols):
             i = row * numCols + col
-            scaledImage, scaledImageName = getImage(imagePaths[i], colSize, rowSize)
+            scaledImage = getImage(imagePaths[i], colSize, rowSize)
+            scaledImageName = Path(imagePaths[i]).name
 
             # Empty space in the center (ref images arranged to the left and right sides)
             if numCols == 2 and col == 1:
@@ -25,7 +26,7 @@ def importAndArrangeImages(imagePaths: list[str], numRows: int, numCols: int, ro
     
     krita.Krita.instance().activeDocument().refreshProjection()
 
-def getImage(imageFilePath: str, width: int, height: int) -> tuple[QImage, str]:
+def getImage(imageFilePath: str, width: int, height: int) -> QImage:
     """
     Get the image scaled to specified width and height (while maintaining aspect ratio)
     """
@@ -40,7 +41,7 @@ def getImage(imageFilePath: str, width: int, height: int) -> tuple[QImage, str]:
     mimedata.setUrls([QUrl().fromLocalFile(imageFilePath)])
     mimedata.setImageData(scaledImage)
 
-    return (scaledImage, imageFilePath)
+    return scaledImage
 
 def importScaledImageAsPaintLayer(scaledImage: QImage, scaledImageName: str, x: int, y: int) -> None:
     activeDoc = krita.Krita.instance().activeDocument()
