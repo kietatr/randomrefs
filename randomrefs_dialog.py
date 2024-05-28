@@ -2,7 +2,7 @@ from . import randomrefs
 
 from .debug_utilities import debugLog
 
-from PyQt5.QtCore import QDirIterator
+from PyQt5.QtCore import QDirIterator, Qt
 
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QFrame, 
@@ -10,12 +10,14 @@ from PyQt5.QtWidgets import (
     QFileDialog, QLabel,
 )
 
+import random
+
 
 class RandomRefsDialog():
 
     def __init__(self):
         self.supportedImageExtensions = (".webp", ".png", ".jpg", ".jpeg", ".bmp", ".tiff")
-        self.refImages: list[str] = []
+        self.refImagePaths: list[str] = []
 
         self.mainDialog = QDialog()
         self.mainDialog.setWindowTitle("Random References")
@@ -27,7 +29,7 @@ class RandomRefsDialog():
 
         self.refFolderInput = QLineEdit()
         self.refFolderInput.setPlaceholderText("C:/path/to/your/reference/folder")
-        self.refFolderInfo = QLabel(f'{len(self.refImages)} images in this folder')
+        self.refFolderInfo = QLabel(f'{len(self.refImagePaths)} images in this folder')
         self.refFolderButton = QPushButton("Select Folder")
 
         self.refFolderLayout.addWidget(self.refFolderInput)
@@ -41,9 +43,15 @@ class RandomRefsDialog():
         self.colSpinBox.setRange(1,10)
         self.colSpinBox.setProperty("value", 2)
 
+        self.formLayout.addRow("", QLabel())  # empty row for extra spacing
         self.formLayout.addRow("Reference Folder", self.refFolderLayout)
+        self.formLayout.addRow("", QLabel())
         self.formLayout.addRow("Rows", self.rowSpinBox)
         self.formLayout.addRow("Columns", self.colSpinBox)
+        self.formLayout.addRow("", QLabel())
+
+        self.samplesInfo = QLabel(f'{self.rowSpinBox.value() * self.colSpinBox.value()} random images will be selected')
+        self.samplesInfo.setAlignment(Qt.AlignHCenter)
 
         self.line = QFrame()
         self.line.setFrameShape(QFrame.HLine)
@@ -53,11 +61,14 @@ class RandomRefsDialog():
 
         self.mainLayout.addWidget(QLabel("First, select a folder containing your reference images. Then, click 'Create Document'"))
         self.mainLayout.addLayout(self.formLayout)
+        self.mainLayout.addWidget(self.samplesInfo)
         self.mainLayout.addWidget(self.line)
         self.mainLayout.addWidget(self.createDocumentButton)
         self.mainDialog.setLayout(self.mainLayout)
 
         self.refFolderButton.clicked.connect(self.selectReferenceFolder)
+        self.rowSpinBox.valueChanged.connect(self.updateSamplesInfo)
+        self.colSpinBox.valueChanged.connect(self.updateSamplesInfo)
 
     def openDialog(self):
         self.mainDialog.show() 
@@ -71,11 +82,18 @@ class RandomRefsDialog():
         self.getRefImagePaths()
         
     def getRefImagePaths(self):
-        self.refImages = []
+        self.refImagePaths = []
         it = QDirIterator(self.refFolderPath, QDirIterator.Subdirectories)
         while(it.hasNext()):
             if it.filePath().endswith(self.supportedImageExtensions):
-                self.refImages.append(it.filePath())
+                self.refImagePaths.append(it.filePath())
             it.next()
             
-        self.refFolderInfo.setText(f'{len(self.refImages)} images in this folder')
+        self.refFolderInfo.setText(f'{len(self.refImagePaths)} images in this folder')
+
+    def updateSamplesInfo(self):
+        self.samplesInfo.setText(f'{self.rowSpinBox.value() * self.colSpinBox.value()} random images will be selected')
+
+    def randomlySelectImages(self):
+        numSamples = self.rowSpinBox.value() * self.colSpinBox.value()
+        randomRefImagePaths = random.sample(self.refImagePaths, numSamples)
