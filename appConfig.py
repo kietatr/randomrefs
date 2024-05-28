@@ -4,6 +4,7 @@
 
 supportedImageExtensions: list[str] = (".webp", ".png", ".jpg", ".jpeg", ".bmp", ".tiff")
 
+# The size of a grid cell
 defaultRowSize: int = 1000
 defaultColSize: int = 1000
 

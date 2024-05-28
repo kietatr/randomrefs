@@ -141,17 +141,18 @@ class RandomRefsDialog():
         for row in range(numRows):
             for col in range(numCols):
                 i = row * numCols + col
+                scaledImage, scaledImageName = image_utils.getImage(randomRefImagePaths[i], colSize, rowSize)
 
                 # Empty space in the center (ref images arranged to the left and right sides)
-                if numCols == 2:
-                    x = (3 * col + 1) * padding + (3 * col) * colSize
+                if numCols == 2 and col == 1:
+                    x = docWidth - padding - scaledImage.width()
                     y = (row + 1) * padding + (row) * rowSize 
                 # Equal grid with ref images on the left of each grid cell
                 else:
                     x = (2 * col + 1) * padding + (2 * col) * colSize
                     y = (row + 1) * padding + (row) * rowSize
 
-                image_utils.importAsPaintLayer(randomRefImagePaths[i], x, y, colSize, rowSize)
+                image_utils.importQImageAsPaintLayer(scaledImage, scaledImageName, x, y)
 
     def setBackgroundColor(self):
         pass
