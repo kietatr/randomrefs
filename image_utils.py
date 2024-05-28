@@ -21,7 +21,7 @@ def importAndArrangeImages(imagePaths: list[str], numRows: int, numCols: int, ro
                 x = (2 * col + 1) * padding + (2 * col) * colSize
                 y = (row + 1) * padding + (row) * rowSize
 
-            importQImageAsPaintLayer(scaledImage, scaledImageName, x, y)
+            importScaledImageAsPaintLayer(scaledImage, scaledImageName, x, y)
     
     krita.Krita.instance().activeDocument().refreshProjection()
 
@@ -42,7 +42,7 @@ def getImage(imageFilePath: str, width: int, height: int) -> tuple[QImage, str]:
 
     return (scaledImage, imageFilePath)
 
-def importQImageAsPaintLayer(scaledImage: QImage, scaledImageName: str, x: int, y: int) -> None:
+def importScaledImageAsPaintLayer(scaledImage: QImage, scaledImageName: str, x: int, y: int) -> None:
     activeDoc = krita.Krita.instance().activeDocument()
     if activeDoc is None:
         warningLog("No document is open at this moment")
