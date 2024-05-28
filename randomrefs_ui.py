@@ -139,7 +139,27 @@ class RandomRefsDialog():
         newDocument = krita.Krita.instance().createDocument(docWidth, docHeight, "New Document", "RGBA", "U8", "", appConfig.documentDPI)
         newDocument.setBackgroundColor(QColor(self.backgroundColorButton.color()))
         krita.Krita.instance().activeWindow().addView(newDocument)
-        
+
+        self.createBackgroundColorLayer()
+
         image_utils.importAndArrangeImages(randomRefImagePaths, numRows, numCols, rowSize, colSize, padding, docWidth)
 
+    def createBackgroundColorLayer(self):
+        backgroundColor = self.backgroundColorButton.color()
         
+        activeDoc = krita.Krita.instance().activeDocument()
+        if activeDoc is None:
+            warningLog("No document is open at this moment")
+            return
+        
+        layerConfig = krita.InfoObject();
+        layerConfig.setProperty("color", backgroundColor)
+        layerSelection = krita.Selection();
+        layerSelection.select(0, 0, activeDoc.width(), activeDoc.height(), 255)
+        
+        newFillLayer = activeDoc.createFillLayer("Background Fill", "color", layerConfig, layerSelection)
+
+        root = activeDoc.rootNode();
+        bottommostLayer = root.childNodes()[0]
+        root.addChildNode(newFillLayer, bottommostLayer)
+        activeDoc.refreshProjection()
