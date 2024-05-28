@@ -40,6 +40,20 @@ class RandomRefsDialog():
 
         self.backgroundColorButton = ColorButton(color=appConfig.defaultBackgroundColor)
 
+        self.rowSizeSpinBox = QSpinBox()
+        self.rowSizeSpinBox.setRange(100,2000)
+        self.rowSizeSpinBox.setSingleStep(100)
+        self.rowSizeSpinBox.setProperty("value", appConfig.defaultRowSize)
+        self.colSizeSpinBox = QSpinBox()
+        self.colSizeSpinBox.setRange(100,2000)
+        self.colSizeSpinBox.setSingleStep(100)
+        self.colSizeSpinBox.setProperty("value", appConfig.defaultColSize)
+
+        self.paddingSpinBox = QSpinBox()
+        self.paddingSpinBox.setRange(0,200)
+        self.paddingSpinBox.setSingleStep(10)
+        self.paddingSpinBox.setProperty("value", appConfig.defaultPadding)
+
         self.rowSpinBox = QSpinBox()
         self.rowSpinBox.setRange(1,10)
         self.rowSpinBox.setProperty("value", 2)
@@ -48,7 +62,9 @@ class RandomRefsDialog():
         self.colSpinBox.setProperty("value", 2)
 
         self.formLayout.addRow("Reference Folder", self.refFolderLayout)
-        self.formLayout.addRow("Background Color", self.backgroundColorButton)
+        self.formLayout.addRow("Canvas Background Color", self.backgroundColorButton)
+        self.formLayout.addRow("Row Size", self.rowSizeSpinBox)
+        self.formLayout.addRow("Column Size", self.colSizeSpinBox)
         self.formLayout.addRow("Rows", self.rowSpinBox)
         self.formLayout.addRow("Columns", self.colSpinBox)
 
@@ -112,16 +128,26 @@ class RandomRefsDialog():
         numSamples = numRows * numCols
         randomRefImagePaths = random.sample(self.refImagePaths, numSamples)
 
-        # Create a document based on rows and columns
-        docWidth = 2 * numCols * appConfig.colSize
-        docHeight = 2 * numRows * appConfig.rowSize
+        # Create a document based on rows, columns, and padding
+        rowSize = self.rowSizeSpinBox.value()
+        colSize = self.colSizeSpinBox.value()
+        padding = self.paddingSpinBox.value()
+        docWidth = 2 * numCols * colSize + padding * (numCols * 2 + 1)
+        docHeight = numRows * rowSize + padding * (numRows + 1)
         newDocument = krita.Krita.instance().createDocument(docWidth, docHeight, "New Document", "RGBA", "U8", "", appConfig.documentDPI)
         krita.Krita.instance().activeWindow().addView(newDocument)
         
-        for i in range(len(randomRefImagePaths)):
-            x = appConfig.padding
-            y = appConfig.padding
-            image_utils.importAsPaintLayer(randomRefImagePaths[i], x, y, appConfig.colSize, appConfig.rowSize)
+        # Import the images as paint layers, then arrange them in a grid
+        for row in range(numRows):
+            for col in range(numCols):
+                i = row * numCols + col
+                if numCols == 2:
+                    x = padding 
+                    y = padding 
+                else:
+                    x = (col*2 + 1) * padding + (2 * col) * colSize
+                    y = (row + 1) * padding + row * rowSize
+                image_utils.importAsPaintLayer(randomRefImagePaths[i], x, y, colSize, rowSize)
 
-        # TODO: create new document, set as active
-        # paste these images as Paint Layers at correct locations
+    def setBackgroundColor(self):
+        pass
