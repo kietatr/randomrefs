@@ -7,18 +7,19 @@ from PyQt5.QtWidgets import (
     QFileDialog, QLabel,
 )
 
-from . import randomrefs
-from .debug_utilities import debugLog
+from . import appConfig
+from . import image_utils
+from .colorButton import ColorButton
+from .debug_utils import debugLog, warningLog
 
 class RandomRefsDialog():
 
     def __init__(self):
-        self.supportedImageExtensions = (".webp", ".png", ".jpg", ".jpeg", ".bmp", ".tiff")
         self.refImagePaths: list[str] = []
 
         self.mainDialog = QDialog()
         self.mainDialog.setWindowTitle("Random References")
-        self.mainDialog.resize(500, 80)
+        self.mainDialog.resize(500, 70)
 
         self.dialogUI()
 
@@ -30,12 +31,14 @@ class RandomRefsDialog():
         self.refFolderInput = QLineEdit()
         self.refFolderInput.setPlaceholderText("C:/path/to/your/reference/folder")
         self.refFolderInfo = QLabel(f'{len(self.refImagePaths)} images in this folder')
-        self.refFolderButton = QPushButton("Select Folder")
+        self.refFolderButton = QPushButton("Select Reference Folder")
         self.refFolderButton.setIcon(krita.Krita.instance().icon('folder'))
 
         self.refFolderLayout.addWidget(self.refFolderInput)
         self.refFolderLayout.addWidget(self.refFolderInfo)
         self.refFolderLayout.addWidget(self.refFolderButton)
+
+        self.backgroundColorButton = ColorButton(color=appConfig.defaultBackgroundColor)
 
         self.rowSpinBox = QSpinBox()
         self.rowSpinBox.setRange(1,10)
@@ -44,14 +47,12 @@ class RandomRefsDialog():
         self.colSpinBox.setRange(1,10)
         self.colSpinBox.setProperty("value", 2)
 
-        self.formLayout.addRow("", QLabel())  # empty row for extra spacing
         self.formLayout.addRow("Reference Folder", self.refFolderLayout)
-        self.formLayout.addRow("", QLabel())
+        self.formLayout.addRow("Background Color", self.backgroundColorButton)
         self.formLayout.addRow("Rows", self.rowSpinBox)
         self.formLayout.addRow("Columns", self.colSpinBox)
-        # self.formLayout.addRow("", QLabel())
 
-        self.samplesInfo = QLabel(f'{self.rowSpinBox.value() * self.colSpinBox.value()} random images will be selected')
+        self.samplesInfo = QLabel(f'{self.rowSpinBox.value() * self.colSpinBox.value()} random images will be selected out of {len(self.refImagePaths)} images')
         self.samplesInfo.setAlignment(Qt.AlignHCenter)
 
         self.line = QFrame()
@@ -69,8 +70,9 @@ class RandomRefsDialog():
         self.mainDialog.setLayout(self.mainLayout)
 
         self.refFolderButton.clicked.connect(self.selectReferenceFolder)
-        self.rowSpinBox.valueChanged.connect(self.updateSamplesInfo)
-        self.colSpinBox.valueChanged.connect(self.updateSamplesInfo)
+        self.rowSpinBox.valueChanged.connect(self.updateInfoTexts)
+        self.colSpinBox.valueChanged.connect(self.updateInfoTexts)
+        self.createDocumentButton.clicked.connect(self.createDocument)
 
     def openDialog(self):
         self.mainDialog.show() 
@@ -89,15 +91,37 @@ class RandomRefsDialog():
         self.refImagePaths = []
         it = QDirIterator(self.refFolderPath, QDirIterator.Subdirectories)
         while(it.hasNext()):
-            if it.filePath().endswith(self.supportedImageExtensions):
+            if it.filePath().endswith(appConfig.supportedImageExtensions):
                 self.refImagePaths.append(it.filePath())
             it.next()
             
+        self.updateInfoTexts()
+
+    def updateInfoTexts(self):
         self.refFolderInfo.setText(f'{len(self.refImagePaths)} images in this folder')
+        self.samplesInfo.setText(f'{self.rowSpinBox.value() * self.colSpinBox.value()} random images will be selected out of {len(self.refImagePaths)} images')
 
-    def updateSamplesInfo(self):
-        self.samplesInfo.setText(f'{self.rowSpinBox.value() * self.colSpinBox.value()} random images will be selected')
-
-    def randomlySelectImages(self):
-        numSamples = self.rowSpinBox.value() * self.colSpinBox.value()
+    def createDocument(self):
+        if len(self.refImagePaths) <= 0:
+            warningLog("You must select a reference folder first")
+            return
+        
+        # Randomly select images from ref folder
+        numRows = self.rowSpinBox.value()
+        numCols = self.colSpinBox.value()
+        numSamples = numRows * numCols
         randomRefImagePaths = random.sample(self.refImagePaths, numSamples)
+
+        # Create a document based on rows and columns
+        docWidth = 2 * numCols * appConfig.colSize
+        docHeight = 2 * numRows * appConfig.rowSize
+        newDocument = krita.Krita.instance().createDocument(docWidth, docHeight, "New Document", "RGBA", "U8", "", appConfig.documentDPI)
+        krita.Krita.instance().activeWindow().addView(newDocument)
+        
+        for i in range(len(randomRefImagePaths)):
+            x = appConfig.padding
+            y = appConfig.padding
+            image_utils.importAsPaintLayer(randomRefImagePaths[i], x, y, appConfig.colSize, appConfig.rowSize)
+
+        # TODO: create new document, set as active
+        # paste these images as Paint Layers at correct locations
