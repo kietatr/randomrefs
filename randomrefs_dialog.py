@@ -51,6 +51,7 @@ class RandomRefsDialog():
 
         self.createDocumentButton = QPushButton("Create Document")
 
+        self.mainLayout.addWidget(QLabel("First, select a folder containing your reference images. Then, click 'Create Document'"))
         self.mainLayout.addLayout(self.formLayout)
         self.mainLayout.addWidget(self.line)
         self.mainLayout.addWidget(self.createDocumentButton)
@@ -76,5 +77,5 @@ class RandomRefsDialog():
             if it.filePath().endswith(self.supportedImageExtensions):
                 self.refImages.append(it.filePath())
             it.next()
-
+            
         self.refFolderInfo.setText(f'{len(self.refImages)} images in this folder')
