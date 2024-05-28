@@ -66,6 +66,7 @@ class RandomRefsDialog():
         self.formLayout.addRow("Canvas Background Color", self.backgroundColorButton)
         self.formLayout.addRow("Row Size", self.rowSizeSpinBox)
         self.formLayout.addRow("Column Size", self.colSizeSpinBox)
+        self.formLayout.addRow("Padding", self.paddingSpinBox)
         self.formLayout.addRow("Rows", self.rowSpinBox)
         self.formLayout.addRow("Columns", self.colSpinBox)
 
