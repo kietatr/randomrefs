@@ -2,18 +2,20 @@ from . import randomrefs
 
 from .debug_utilities import debugLog
 
-from PyQt5.QtCore import QStandardPaths, qDebug
+from PyQt5.QtCore import QDirIterator
+
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QFrame, 
     QFormLayout, QLineEdit, QSpinBox, QPushButton,
-    QFileDialog, QWidget,
+    QFileDialog, QLabel,
 )
 
 
 class RandomRefsDialog():
 
     def __init__(self):
-        self.supportedImageExtensions = [".webp", ".png", ".jpg", ".jpeg", ".bmp", ".tiff"]
+        self.supportedImageExtensions = (".webp", ".png", ".jpg", ".jpeg", ".bmp", ".tiff")
+        self.refImages: list[str] = []
 
         self.mainDialog = QDialog()
         self.mainDialog.setWindowTitle("Random References")
@@ -25,8 +27,11 @@ class RandomRefsDialog():
 
         self.refFolderInput = QLineEdit()
         self.refFolderInput.setPlaceholderText("C:/path/to/your/reference/folder")
+        self.refFolderInfo = QLabel(f'{len(self.refImages)} images in this folder')
         self.refFolderButton = QPushButton("Select Folder")
+
         self.refFolderLayout.addWidget(self.refFolderInput)
+        self.refFolderLayout.addWidget(self.refFolderInfo)
         self.refFolderLayout.addWidget(self.refFolderButton)
 
         self.rowSpinBox = QSpinBox()
@@ -57,13 +62,19 @@ class RandomRefsDialog():
         self.mainDialog.show() 
         self.mainDialog.exec_()
 
-    def getImagesFromRefFolder(self):
-        pass
-
     def selectReferenceFolder(self):
         title = "Choose a Folder that contains your Reference Images"
         dialogOptions = QFileDialog.ShowDirsOnly
         self.refFolderPath = QFileDialog.getExistingDirectory(parent=self.mainDialog, caption=title, options=dialogOptions)
         self.refFolderInput.setText(self.refFolderPath)
-        self.getImagesFromRefFolder()
+        self.getRefImagePaths()
         
+    def getRefImagePaths(self):
+        self.refImages = []
+        it = QDirIterator(self.refFolderPath, QDirIterator.Subdirectories)
+        while(it.hasNext()):
+            if it.filePath().endswith(self.supportedImageExtensions):
+                self.refImages.append(it.filePath())
+            it.next()
+
+        self.refFolderInfo.setText(f'{len(self.refImages)} images in this folder')
