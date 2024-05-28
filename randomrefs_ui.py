@@ -119,6 +119,28 @@ class RandomRefsDialog():
         self.refFolderInfo.setText(f'{len(self.refImagePaths)} images in this folder')
         self.samplesInfo.setText(f'{self.rowSpinBox.value() * self.colSpinBox.value()} random images will be selected out of {len(self.refImagePaths)} images')
 
+    def createBackgroundColorLayer(self):
+        backgroundColor = self.backgroundColorButton.color()
+        
+        activeDoc = krita.Krita.instance().activeDocument()
+        if activeDoc is None:
+            warningLog("No document is open at this moment")
+            return
+        
+        layerConfig = krita.InfoObject();
+        layerConfig.setProperty("color", backgroundColor)
+        layerSelection = krita.Selection();
+        layerSelection.select(0, 0, activeDoc.width(), activeDoc.height(), 255)
+        
+        bgFillLayer = activeDoc.createFillLayer("Background Fill", "color", layerConfig, layerSelection)
+
+        root = activeDoc.rootNode();
+        bottommostLayer = root.childNodes()[0]
+        root.addChildNode(bgFillLayer, bottommostLayer)
+        root.removeChildNode(bottommostLayer)
+
+        activeDoc.refreshProjection()
+
     def createDocument(self):
         if len(self.refImagePaths) <= 0:
             warningLog("You must select a reference folder first")
@@ -144,22 +166,6 @@ class RandomRefsDialog():
 
         image_utils.importAndArrangeImages(randomRefImagePaths, numRows, numCols, rowSize, colSize, padding, docWidth)
 
-    def createBackgroundColorLayer(self):
-        backgroundColor = self.backgroundColorButton.color()
-        
-        activeDoc = krita.Krita.instance().activeDocument()
-        if activeDoc is None:
-            warningLog("No document is open at this moment")
-            return
-        
-        layerConfig = krita.InfoObject();
-        layerConfig.setProperty("color", backgroundColor)
-        layerSelection = krita.Selection();
-        layerSelection.select(0, 0, activeDoc.width(), activeDoc.height(), 255)
-        
-        newFillLayer = activeDoc.createFillLayer("Background Fill", "color", layerConfig, layerSelection)
-
-        root = activeDoc.rootNode();
-        bottommostLayer = root.childNodes()[0]
-        root.addChildNode(newFillLayer, bottommostLayer)
-        activeDoc.refreshProjection()
+        # Close the dialog so that the canvas can display the latest results
+        self.mainDialog.done(0)
+    
