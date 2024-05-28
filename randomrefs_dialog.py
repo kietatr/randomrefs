@@ -80,6 +80,8 @@ class RandomRefsDialog():
         title = "Choose a Folder that contains your Reference Images"
         dialogOptions = QFileDialog.ShowDirsOnly
         self.refFolderPath = QFileDialog.getExistingDirectory(parent=self.mainDialog, caption=title, options=dialogOptions)
+        if self.refFolderPath is None or self.refFolderPath == "":
+            return
         self.refFolderInput.setText(self.refFolderPath)
         self.getRefImagePaths()
         
