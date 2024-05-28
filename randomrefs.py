@@ -2,7 +2,7 @@
 from .PyKrita import *  # for autocomplete 
 
 import krita
-from . import randomrefs_dialog
+from . import randomrefs_ui
 
 
 class RandomRefsExtension(krita.Extension):
@@ -19,6 +19,6 @@ class RandomRefsExtension(krita.Extension):
         action.triggered.connect(self.openDialog)
 
     def openDialog(self):
-        self.randomrefsdialog = randomrefs_dialog.RandomRefsDialog()
+        self.randomrefsdialog = randomrefs_ui.RandomRefsDialog()
         self.randomrefsdialog.openDialog()
 

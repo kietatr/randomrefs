@@ -1,6 +1,7 @@
 import krita
 import random
 from PyQt5.QtCore import QDirIterator, Qt
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QFrame, 
     QFormLayout, QLineEdit, QSpinBox, QPushButton,
@@ -135,24 +136,9 @@ class RandomRefsDialog():
         docWidth = 2 * numCols * colSize + padding * (numCols * 2 + 1)
         docHeight = numRows * rowSize + padding * (numRows + 1)
         newDocument = krita.Krita.instance().createDocument(docWidth, docHeight, "New Document", "RGBA", "U8", "", appConfig.documentDPI)
+        newDocument.setBackgroundColor(QColor(self.backgroundColorButton.color()))
         krita.Krita.instance().activeWindow().addView(newDocument)
         
-        # Import the images as paint layers, then arrange them in a grid
-        for row in range(numRows):
-            for col in range(numCols):
-                i = row * numCols + col
-                scaledImage, scaledImageName = image_utils.getImage(randomRefImagePaths[i], colSize, rowSize)
+        image_utils.importAndArrangeImages(randomRefImagePaths, numRows, numCols, rowSize, colSize, padding, docWidth)
 
-                # Empty space in the center (ref images arranged to the left and right sides)
-                if numCols == 2 and col == 1:
-                    x = docWidth - padding - scaledImage.width()
-                    y = (row + 1) * padding + (row) * rowSize 
-                # Equal grid with ref images on the left of each grid cell
-                else:
-                    x = (2 * col + 1) * padding + (2 * col) * colSize
-                    y = (row + 1) * padding + (row) * rowSize
-
-                image_utils.importQImageAsPaintLayer(scaledImage, scaledImageName, x, y)
-
-    def setBackgroundColor(self):
-        pass
+        
