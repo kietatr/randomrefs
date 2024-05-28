@@ -1,17 +1,14 @@
-from . import randomrefs
-
-from .debug_utilities import debugLog
-
+import krita
+import random
 from PyQt5.QtCore import QDirIterator, Qt
-
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QFrame, 
     QFormLayout, QLineEdit, QSpinBox, QPushButton,
     QFileDialog, QLabel,
 )
 
-import random
-
+from . import randomrefs
+from .debug_utilities import debugLog
 
 class RandomRefsDialog():
 
@@ -23,6 +20,9 @@ class RandomRefsDialog():
         self.mainDialog.setWindowTitle("Random References")
         self.mainDialog.resize(500, 80)
 
+        self.dialogUI()
+
+    def dialogUI(self):
         self.mainLayout = QVBoxLayout()
         self.refFolderLayout = QVBoxLayout()
         self.formLayout = QFormLayout()
@@ -31,6 +31,7 @@ class RandomRefsDialog():
         self.refFolderInput.setPlaceholderText("C:/path/to/your/reference/folder")
         self.refFolderInfo = QLabel(f'{len(self.refImagePaths)} images in this folder')
         self.refFolderButton = QPushButton("Select Folder")
+        self.refFolderButton.setIcon(krita.Krita.instance().icon('folder'))
 
         self.refFolderLayout.addWidget(self.refFolderInput)
         self.refFolderLayout.addWidget(self.refFolderInfo)
@@ -48,7 +49,7 @@ class RandomRefsDialog():
         self.formLayout.addRow("", QLabel())
         self.formLayout.addRow("Rows", self.rowSpinBox)
         self.formLayout.addRow("Columns", self.colSpinBox)
-        self.formLayout.addRow("", QLabel())
+        # self.formLayout.addRow("", QLabel())
 
         self.samplesInfo = QLabel(f'{self.rowSpinBox.value() * self.colSpinBox.value()} random images will be selected')
         self.samplesInfo.setAlignment(Qt.AlignHCenter)
@@ -58,6 +59,7 @@ class RandomRefsDialog():
         self.line.setFrameShadow(QFrame.Sunken)
 
         self.createDocumentButton = QPushButton("Create Document")
+        self.createDocumentButton.setIcon(krita.Krita.instance().icon('media-playback-start'))
 
         self.mainLayout.addWidget(QLabel("First, select a folder containing your reference images. Then, click 'Create Document'"))
         self.mainLayout.addLayout(self.formLayout)
