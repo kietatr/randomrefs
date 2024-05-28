@@ -119,7 +119,7 @@ class RandomRefsDialog():
         self.refFolderInfo.setText(f'{len(self.refImagePaths)} images in this folder')
         self.samplesInfo.setText(f'{self.rowSpinBox.value() * self.colSpinBox.value()} random images will be selected out of {len(self.refImagePaths)} images')
 
-    def createBackgroundColorLayer(self):
+    def createBackgroundFillLayer(self):
         backgroundColor = self.backgroundColorButton.color()
         
         activeDoc = krita.Krita.instance().activeDocument()
@@ -134,12 +134,22 @@ class RandomRefsDialog():
         
         bgFillLayer = activeDoc.createFillLayer("Background Fill", "color", layerConfig, layerSelection)
 
-        root = activeDoc.rootNode();
+        root = activeDoc.rootNode()
         bottommostLayer = root.childNodes()[0]
         root.addChildNode(bgFillLayer, bottommostLayer)
         root.removeChildNode(bottommostLayer)
 
         activeDoc.refreshProjection()
+
+    def removeBackgroundLayer(self):
+        activeDoc = krita.Krita.instance().activeDocument()
+        if activeDoc is None:
+            warningLog("No document is open at this moment")
+            return
+        
+        root = activeDoc.rootNode()
+        bottommostLayer = root.childNodes()[0]
+        root.removeChildNode(bottommostLayer)
 
     def createDocument(self):
         if len(self.refImagePaths) <= 0:
@@ -162,7 +172,8 @@ class RandomRefsDialog():
         newDocument.setBackgroundColor(QColor(self.backgroundColorButton.color()))
         krita.Krita.instance().activeWindow().addView(newDocument)
 
-        self.createBackgroundColorLayer()
+        # self.createBackgroundFillLayer()
+        self.removeBackgroundLayer()
 
         image_utils.importAndArrangeImages(randomRefImagePaths, numRows, numCols, rowSize, colSize, padding, docWidth)
 
